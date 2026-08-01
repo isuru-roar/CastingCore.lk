@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — CastingCore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body { background:var(--bg-primary); }
+    .dashboard-grid { display:grid; grid-template-columns:260px 1fr; gap:2rem; margin:2rem auto 4rem; align-items:start; }
+    /* Sidebar */
+    .sidebar { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:16px; padding:1.5rem; position:sticky; top:80px; }
+    .sidebar-avatar { width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-color); margin:0 auto 1rem; display:block; }
+    .sidebar-name { text-align:center; font-weight:600; font-size:1.1rem; }
+    .sidebar-tier { text-align:center; font-size:0.8rem; background:var(--accent-color); color:#111; border-radius:50px; padding:0.2rem 0.75rem; display:inline-block; margin:0.5rem auto 1.5rem; }
+    .sidebar-nav a { display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; border-radius:8px; color:var(--text-secondary); font-weight:500; transition:all 0.2s; margin-bottom:0.25rem; text-decoration:none; }
+    .sidebar-nav a:hover, .sidebar-nav a.active { background:rgba(235,255,112,0.08); color:var(--accent-color); }
+    .sidebar-nav a svg { width:18px; height:18px; flex-shrink:0; }
+    /* Main */
+    .dash-section { display:none; }
+    .dash-section.active { display:block; }
+    .section-title { font-size:1.5rem; font-weight:600; margin-bottom:1.5rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border-color); }
+    /* Stat cards */
+    .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1.25rem; margin-bottom:2rem; }
+    .stat-card { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; }
+    .stat-card .number { font-size:2rem; font-weight:700; color:var(--accent-color); }
+    .stat-card .label { color:var(--text-secondary); font-size:0.85rem; margin-top:0.25rem; }
+    /* Form */
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .form-group { margin-bottom:1rem; }
+    .form-group label { display:block; font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem; }
+    .form-group input, .form-group select, .form-group textarea {
+      width:100%; padding:0.75rem; background:rgba(0,0,0,0.3); border:1px solid var(--border-color);
+      border-radius:8px; color:white; font-family:inherit; font-size:0.9rem;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:var(--accent-color); }
+    /* Plan badges */
+    .plan-badge { display:inline-block; padding:0.4rem 1rem; border-radius:50px; font-size:0.85rem; font-weight:600; }
+    .plan-free { background:rgba(255,255,255,0.1); color:white; }
+    .plan-pro { background:rgba(235,255,112,0.2); color:var(--accent-color); }
+    .plan-premium { background:rgba(168,85,247,0.2); color:#c084fc; }
+    /* Upload zone */
+    .upload-zone { border:2px dashed var(--border-color); border-radius:12px; padding:2rem; text-align:center; cursor:pointer; transition:all 0.2s; }
+    .upload-zone:hover { border-color:var(--accent-color); background:rgba(235,255,112,0.03); }
+    /* Gallery */
+    .gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:1rem; }
+    .gallery-grid img { width:100%; height:120px; object-fit:cover; border-radius:8px; border:1px solid var(--border-color); }
+    /* Members table */
+    .members-table { width:100%; border-collapse:collapse; }
+    .members-table th, .members-table td { padding:0.9rem 1rem; text-align:left; border-bottom:1px solid var(--border-color); font-size:0.9rem; }
+    .members-table th { color:var(--text-secondary); font-weight:500; }
+    .badge-role { display:inline-block; padding:0.2rem 0.6rem; border-radius:4px; font-size:0.75rem; font-weight:600; }
+    .badge-actor { background:rgba(59,130,246,0.2); color:#60a5fa; }
+    .badge-agency { background:rgba(234,179,8,0.2); color:#facc15; }
+    .badge-admin { background:rgba(168,85,247,0.2); color:#c084fc; }
+  </style>
+</head>
+<body>
+  <div data-site-nav></div>
+
+<div class="container dashboard-grid">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <img id="sb-avatar" class="sidebar-avatar" src="https://via.placeholder.com/80" alt="Avatar">
+      <div class="sidebar-name" id="sb-name">Loading...</div>
+      <div style="text-align:center;"><span class="sidebar-tier" id="sb-tier">Free</span></div>
+      <nav class="sidebar-nav">
+        <a href="#" data-section="overview" class="active" onclick="showSection('overview',this)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Overview
+        </a>
+        <a href="#" data-section="profile" onclick="showSection('profile',this)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          My Profile
+        </a>
+        <a href="#" data-section="media" onclick="showSection('media',this)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Photos & Media
+        </a>
+        <a href="#" data-section="subscription" onclick="showSection('subscription',this)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          Subscription
+        </a>
+        <a href="#" data-section="members" onclick="showSection('members',this)" id="nav-members" style="display:none;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Members
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+      <!-- OVERVIEW -->
+      <div id="sec-overview" class="dash-section active">
+        <div class="section-title">Dashboard Overview</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="number" id="stat-views">—</div><div class="label">Profile Views</div></div>
+          <div class="stat-card"><div class="number" id="stat-apps">—</div><div class="label">Applications</div></div>
+          <div class="stat-card"><div class="number" id="stat-calls">—</div><div class="label">Active Casting Calls</div></div>
+          <div class="stat-card"><div class="number" id="stat-tier">Free</div><div class="label">Current Plan</div></div>
+        </div>
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;">
+          <h3 style="margin-bottom:1rem;">Quick Actions</h3>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <a href="ads.html" class="btn-primary">Browse Casting Calls</a>
+            <a href="talents.html" class="btn-secondary">View Talent Directory</a>
+            <button class="btn-secondary" onclick="showSection('profile',document.querySelector('[data-section=\'profile\']'))">Edit My Profile</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE EDITOR -->
+      <div id="sec-profile" class="dash-section">
+        <div class="section-title">My Talent Profile</div>
+        <form id="profile-form">
+          <div class="form-row">
+            <div class="form-group"><label>Full Name</label><input type="text" id="pf-name" placeholder="Your name"></div>
+            <div class="form-group"><label>Gender</label>
+              <select id="pf-gender"><option>Male</option><option>Female</option><option>Other</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label>Bio</label><textarea id="pf-bio" rows="4" placeholder="Write a short bio about yourself..."></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label>Age</label><input type="number" id="pf-age" placeholder="25"></div>
+            <div class="form-group"><label>Height (cm)</label><input type="number" id="pf-height" placeholder="175"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Location</label><input type="text" id="pf-location" placeholder="Colombo, Sri Lanka"></div>
+            <div class="form-group"><label>Education</label><input type="text" id="pf-education" placeholder="Bachelor of Arts"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Skin Tone</label>
+              <select id="pf-skin"><option>Fair</option><option>Medium</option><option>Olive</option><option>Brown</option><option>Dark</option></select>
+            </div>
+            <div class="form-group"><label>Experience Level</label>
+              <select id="pf-exp"><option>Beginner</option><option>Intermediate</option><option>Professional</option></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Shirt Size</label><input type="text" id="pf-shirt" placeholder="M / L / XL"></div>
+            <div class="form-group"><label>Trousers Size</label><input type="text" id="pf-trousers" placeholder="32 / 34"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Hourly Rate ($)</label><input type="number" id="pf-rate" placeholder="50"></div>
+            <div class="form-group"><label>Phone</label><input type="tel" id="pf-phone" placeholder="+94 77 XXX XXXX"></div>
+          </div>
+          <button type="submit" class="btn-primary">Save Profile</button>
+          <span id="profile-saved" style="color:var(--accent-color);margin-left:1rem;display:none;">✓ Saved!</span>
+        </form>
+      </div>
+
+      <!-- MEDIA -->
+      <div id="sec-media" class="dash-section">
+        <div class="section-title">Photos & Media</div>
+        <h3 style="margin-bottom:1rem;">Profile Photo</h3>
+        <div class="upload-zone" onclick="document.getElementById('upload-avatar').click()">
+          <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 0.75rem;display:block;color:var(--text-secondary)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <p style="color:var(--text-secondary);">Click to upload your profile photo</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.5rem;">JPG, PNG up to 10MB</p>
+        </div>
+        <input type="file" id="upload-avatar" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+        <img id="avatar-preview" style="display:none;width:120px;height:120px;border-radius:50%;object-fit:cover;margin-top:1rem;border:2px solid var(--accent-color);">
+
+        <h3 style="margin:2rem 0 1rem;">Gallery Images</h3>
+        <div class="upload-zone" onclick="document.getElementById('upload-gallery').click()">
+          <p style="color:var(--text-secondary);">Click to upload gallery images (up to 10)</p>
+        </div>
+        <input type="file" id="upload-gallery" accept="image/*" multiple style="display:none" onchange="uploadGallery(this)">
+        <div class="gallery-grid" id="gallery-grid" style="margin-top:1.5rem;"></div>
+      </div>
+
+      <!-- SUBSCRIPTION -->
+      <div id="sec-subscription" class="dash-section">
+        <div class="section-title">Subscription & Billing</div>
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:16px;padding:2rem;margin-bottom:2rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+            <div>
+              <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.5rem;">CURRENT PLAN</p>
+              <span class="plan-badge plan-free" id="plan-display">Free</span>
+            </div>
+            <div id="billing-info" style="color:var(--text-secondary);font-size:0.9rem;"></div>
+          </div>
+        </div>
+        <h3 style="margin-bottom:1.5rem;">Upgrade Your Plan</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;">
+          <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:16px;padding:2rem;">
+            <h4>Pro Agency</h4>
+            <p style="font-size:2rem;font-weight:700;margin:0.5rem 0;">$49<span style="font-size:1rem;color:var(--text-secondary);">/mo</span></p>
+            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;">Unlimited contact + advanced filters</p>
+            <button class="btn-primary" style="width:100%;" onclick="subscribe('agency_pro')">Subscribe</button>
+          </div>
+          <div style="background:var(--bg-secondary);border:1px solid var(--accent-color);border-radius:16px;padding:2rem;">
+            <h4>Actor Premium <span style="color:var(--accent-color);font-size:0.75rem;">★ POPULAR</span></h4>
+            <p style="font-size:2rem;font-weight:700;margin:0.5rem 0;">$12<span style="font-size:1rem;color:var(--text-secondary);">/mo</span></p>
+            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;">Verified badge + priority search</p>
+            <button class="btn-primary" style="width:100%;" onclick="subscribe('actor_premium')">Subscribe</button>
+          </div>
+          <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:16px;padding:2rem;">
+            <h4>Production Tier</h4>
+            <p style="font-size:2rem;font-weight:700;margin:0.5rem 0;">$199<span style="font-size:1rem;color:var(--text-secondary);">/mo</span></p>
+            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;">Everything + priority support</p>
+            <button class="btn-primary" style="width:100%;" onclick="subscribe('agency_premium')">Subscribe</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEMBERS (Admin only) -->
+      <div id="sec-members" class="dash-section">
+        <div class="section-title">All Members</div>
+        <table class="members-table">
+          <thead><tr><th>Name</th><th>Role</th><th>Plan</th><th>Joined</th></tr></thead>
+          <tbody id="members-tbody"><tr><td colspan="4" style="color:var(--text-secondary);">Loading members...</td></tr></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/layout.js"></script>
+  <script>
+    let user = {};
+
+    const titleCase = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+    // ── Init ─────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Server-side gate: a tampered localStorage can't get past this.
+      user = await requireLogin();
+      if (!user) return;
+
+      document.getElementById('sb-name').textContent = user.full_name || user.email || 'Member';
+      const tier = user.subscription_tier || 'free';
+      document.getElementById('sb-tier').textContent   = titleCase(tier);
+      document.getElementById('stat-tier').textContent = titleCase(tier);
+      if (user.avatar_url) document.getElementById('sb-avatar').src = user.avatar_url;
+      if (user.role === 'admin') document.getElementById('nav-members').style.display = 'flex';
+
+      populateProfileForm(user);
+      loadStats();
+
+      if (new URLSearchParams(window.location.search).get('payment') === 'success') {
+        alert('🎉 Payment successful! Your plan has been upgraded.');
+      }
+    });
+
+    function showSection(name, el) {
+      document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+      document.getElementById('sec-' + name).classList.add('active');
+      if (el) el.classList.add('active');
+      if (name === 'members') loadMembers();
+    }
+
+    // ── Profile ──────────────────────────────────────────
+    // Talent profiles are one nested object everywhere on the site — see
+    // backend/routes/talents.js — so this reads/writes physical.*,
+    // professional.*, availability.*, contact.* instead of flat columns.
+    function populateProfileForm(u) {
+      const t = u.talents?.[0] || {};
+      document.getElementById('pf-name').value       = t.fullName || u.full_name || '';
+      document.getElementById('pf-bio').value        = t.description || '';
+      document.getElementById('pf-age').value        = t.age || '';
+      document.getElementById('pf-height').value     = t.physical?.height || '';
+      document.getElementById('pf-location').value   = t.availability?.location || '';
+      document.getElementById('pf-education').value  = t.education || '';
+      document.getElementById('pf-shirt').value      = t.physical?.clothingSize?.shirt || '';
+      document.getElementById('pf-trousers').value   = t.physical?.clothingSize?.trousers || '';
+      document.getElementById('pf-rate').value       = t.professional?.hourlyRate || '';
+      document.getElementById('pf-phone').value      = t.contact?.phone || '';
+      if (t.gender) document.getElementById('pf-gender').value = t.gender;
+      if (t.physical?.skinTone) document.getElementById('pf-skin').value = t.physical.skinTone;
+      if (t.professional?.experienceLevel) document.getElementById('pf-exp').value = t.professional.experienceLevel;
+
+      const planEl = document.getElementById('plan-display');
+      const tier = u.subscription_tier || 'free';
+      planEl.textContent = titleCase(tier);
+      planEl.className = `plan-badge plan-${tier}`;
+
+      if (t.gallery) renderGallery(t.gallery);
+    }
+
+    // Profile views and application counts aren't tracked anywhere yet — there
+    // are no tables for them — so they show as "—" rather than as invented
+    // numbers. Open casting calls is a real count.
+    async function loadStats() {
+      document.getElementById('stat-views').textContent = '—';
+      document.getElementById('stat-apps').textContent  = '—';
+
+      const ads = await getAdsFromAPI();
+      const open = ads.filter(a => (a.status || 'Open') === 'Open').length;
+      document.getElementById('stat-calls').textContent = open;
+    }
+
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        fullName: document.getElementById('pf-name').value,
+        description: document.getElementById('pf-bio').value,
+        age: parseInt(document.getElementById('pf-age').value) || null,
+        gender: document.getElementById('pf-gender').value,
+        education: document.getElementById('pf-education').value,
+        physical: {
+          height: parseInt(document.getElementById('pf-height').value) || null,
+          skinTone: document.getElementById('pf-skin').value,
+          clothingSize: {
+            shirt: document.getElementById('pf-shirt').value,
+            trousers: document.getElementById('pf-trousers').value,
+          },
+        },
+        professional: {
+          experienceLevel: document.getElementById('pf-exp').value,
+          hourlyRate: parseFloat(document.getElementById('pf-rate').value) || null,
+        },
+        availability: { location: document.getElementById('pf-location').value },
+        contact: { phone: document.getElementById('pf-phone').value },
+      };
+      // The API deep-merges this into the existing talent profile, so fields
+      // this form doesn't manage (skills, gallery, profilePicture, etc.) are
+      // left untouched.
+      await saveTalentViaAPI(body);
+      document.getElementById('profile-saved').style.display = 'inline';
+      setTimeout(() => document.getElementById('profile-saved').style.display = 'none', 3000);
+    });
+
+    // ── Media ────────────────────────────────────────────
+    async function uploadAvatar(input) {
+      const file = input.files[0]; if (!file) return;
+      const data = await uploadProfileImage(file);
+      if (data.url) {
+        document.getElementById('avatar-preview').src = data.url;
+        document.getElementById('avatar-preview').style.display = 'block';
+        document.getElementById('sb-avatar').src = data.url;
+      } else {
+        alert('Upload failed: ' + (data.error || 'unknown error'));
+      }
+    }
+
+    async function uploadGallery(input) {
+      const data = await uploadGalleryImages(input.files);
+      if (data.urls) renderGallery(data.urls);
+      else alert('Upload failed: ' + (data.error || 'unknown error'));
+    }
+
+    function renderGallery(urls) {
+      document.getElementById('gallery-grid').innerHTML =
+        urls.map(u => `<img src="${u}" alt="gallery">`).join('');
+    }
+
+    // ── Payments ─────────────────────────────────────────
+    async function subscribe(plan) {
+      await startCheckout(plan);
+    }
+
+    // ── Members (admin only) ─────────────────────────────
+    async function loadMembers() {
+      const tbody = document.getElementById('members-tbody');
+      tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+      try {
+        const data = await apiFetch('/admin/members');
+        if (!Array.isArray(data)) throw new Error(data?.error || 'Could not load members');
+
+        tbody.innerHTML = data.map(m => `
+          <tr>
+            <td>${m.fullName}</td>
+            <td><span class="badge-role badge-${m.role}">${titleCase(m.role)}</span></td>
+            <td>${titleCase(m.plan)}</td>
+            <td>${new Date(m.createdAt).toLocaleDateString()}</td>
+          </tr>`).join('') || '<tr><td colspan="4">No members found.</td></tr>';
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:#f87171;">${e.message}</td></tr>`;
+      }
+    }
+  </script>
+</body>
+</html>
